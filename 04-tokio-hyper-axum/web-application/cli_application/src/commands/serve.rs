@@ -3,6 +3,12 @@ use crate::state::ApplicationState;
 use clap::{value_parser, Arg, ArgMatches, Command};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
+use tower_http::trace::TraceLayer;
+use tracing::level_filters::LevelFilter;
+use tracing::Level;
+use tracing_subscriber::fmt;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 pub const COMMAND_NAME: &str = "serve";
 
@@ -29,18 +35,24 @@ pub fn handle(matches: &ArgMatches, settings: &Settings) -> anyhow::Result<()> {
 fn start_tokio(port: u16, settings: &Settings) -> anyhow::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
-        .build()
-        .unwrap()
+        .build()?
         .block_on(async move {
-            let state = Arc::new(ApplicationState::new(settings)?);
-            let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port);
-            let routes = crate::api::configure(state);
+            let subscriber = tracing_subscriber::registry()
+                .with(LevelFilter::from_level(Level::TRACE))
+                .with(fmt::Layer::default());
 
-            let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-            axum::serve(listener, routes.into_make_service()).await?;
+            subscriber.init();
+
+            let state = Arc::new(ApplicationState::new(settings)?);
+            let router = crate::api::configure(state).layer(TraceLayer::new_for_http());
+
+            let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port);
+
+            let listener = tokio::net::TcpListener::bind(addr).await?;
+            axum::serve(listener, router.into_make_service()).await?;
 
             Ok::<(), anyhow::Error>(())
         })?;
 
-    std::process::exit(0);
+    Ok(())
 }

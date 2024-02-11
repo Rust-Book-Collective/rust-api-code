@@ -12,6 +12,6 @@ pub async fn hello(State(state): State<Arc<ApplicationState>>) -> Result<String,
             .config
             .location
             .clone()
-            .unwrap_or("-".to_string())
+            .unwrap_or("[nowhere]".to_string())
     ))
 }
