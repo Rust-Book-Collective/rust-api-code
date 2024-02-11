@@ -14,7 +14,7 @@ pub fn configure(command: Command) -> Command {
 pub fn handle(matches: &ArgMatches, settings: &Settings) -> anyhow::Result<()> {
     if let Some((cmd, matches)) = matches.subcommand() {
         match cmd {
-            hello::COMMAND_NAME => hello::handle(matches)?,
+            hello::COMMAND_NAME => hello::handle(matches, settings)?,
             serve::COMMAND_NAME => serve::handle(matches, settings)?,
             &_ => {}
         }
