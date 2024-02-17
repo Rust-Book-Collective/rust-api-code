@@ -7,6 +7,7 @@ trait PostService {
     async fn get_post_by_slug(&self, name: &str) -> Option<Post>;
     async fn create_post(&mut self, req: CreatePostRequest) -> anyhow::Result<Post>;
     async fn update_post(&mut self, req: UpdatePostRequest) -> anyhow::Result<Post>;
+    async fn delete_post(&mut self, id: i64) -> anyhow::Result<()>;
 }
 
 pub struct CreatePostRequest {
@@ -103,6 +104,16 @@ impl PostService for InMemoryPostService {
                 anyhow::bail!("Post not found: {}", req.id)
             }
             Some(post) => Ok(post.clone()),
+        }
+    }
+
+    async fn delete_post(&mut self, id: i64) -> anyhow::Result<()> {
+        let mut data = self.data.lock().await;
+        match data.items.remove(&id) {
+            None => {
+                anyhow::bail!("Post not found: {}", id)
+            }
+            Some(_) => Ok(()),
         }
     }
 }

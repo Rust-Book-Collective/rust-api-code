@@ -8,6 +8,7 @@ trait UserService {
     async fn get_user_by_name(&self, name: &str) -> Option<User>;
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User>;
     async fn update_user(&mut self, req: UpdateUserRequest) -> anyhow::Result<User>;
+    async fn delete_user(&mut self, id: i64) -> anyhow::Result<()>;
 }
 
 pub struct CreateUserRequest {
@@ -101,6 +102,16 @@ impl UserService for InMemoryUserService {
                 anyhow::bail!("User not found: {}", req.id)
             }
             Some(user) => Ok(user.clone()),
+        }
+    }
+
+    async fn delete_user(&mut self, id: i64) -> anyhow::Result<()> {
+        let mut data = self.data.lock().await;
+        match data.items.remove(&id) {
+            None => {
+                anyhow::bail!("User not found: {}", id)
+            }
+            Some(_) => Ok(()),
         }
     }
 }
