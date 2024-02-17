@@ -3,7 +3,8 @@ use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tokio::sync::Mutex;
 
-trait UserService {
+#[allow(async_fn_in_trait)]
+pub trait UserService {
     async fn get_user_by_id(&self, id: i64) -> Option<User>;
     async fn get_user_by_name(&self, name: &str) -> Option<User>;
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User>;

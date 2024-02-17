@@ -1,12 +1,13 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum UserStatus {
     Active = 1,
     Blocked = 2,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct User {
     pub id: i64,
     pub username: String,
@@ -17,12 +18,12 @@ pub struct User {
     pub last_login: Option<DateTime<Utc>>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum PostStatus {
     Draft = 1,
     Published = 2,
 }
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct Post {
     pub id: i64,
     pub author_id: i64,

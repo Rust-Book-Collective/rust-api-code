@@ -1,15 +1,19 @@
 use crate::model::{Post, PostStatus};
+use serde::Deserialize;
 use std::collections::HashMap;
 use tokio::sync::Mutex;
 
-trait PostService {
+#[allow(async_fn_in_trait)]
+pub trait PostService {
+    async fn get_all_posts(&self) -> Vec<Post>;
     async fn get_post_by_id(&self, id: i64) -> Option<Post>;
     async fn get_post_by_slug(&self, name: &str) -> Option<Post>;
-    async fn create_post(&mut self, req: CreatePostRequest) -> anyhow::Result<Post>;
-    async fn update_post(&mut self, req: UpdatePostRequest) -> anyhow::Result<Post>;
-    async fn delete_post(&mut self, id: i64) -> anyhow::Result<()>;
+    async fn create_post(&self, req: CreatePostRequest) -> anyhow::Result<Post>;
+    async fn update_post(&self, req: UpdatePostRequest) -> anyhow::Result<Post>;
+    async fn delete_post(&self, id: i64) -> anyhow::Result<()>;
 }
 
+#[derive(Deserialize)]
 pub struct CreatePostRequest {
     pub author_id: i64,
     pub slug: String,
@@ -18,6 +22,7 @@ pub struct CreatePostRequest {
     pub status: PostStatus,
 }
 
+#[derive(Deserialize)]
 pub struct UpdatePostRequest {
     pub id: i64,
     pub slug: String,
@@ -46,6 +51,11 @@ impl Default for InMemoryPostService {
 }
 
 impl PostService for InMemoryPostService {
+    async fn get_all_posts(&self) -> Vec<Post> {
+        let data = self.data.lock().await;
+        data.items.values().map(|post| (*post).clone()).collect()
+    }
+
     async fn get_post_by_id(&self, id: i64) -> Option<Post> {
         let data = self.data.lock().await;
         data.items.get(&id).map(|post| (*post).clone())
@@ -62,7 +72,7 @@ impl PostService for InMemoryPostService {
         None
     }
 
-    async fn create_post(&mut self, req: CreatePostRequest) -> anyhow::Result<Post> {
+    async fn create_post(&self, req: CreatePostRequest) -> anyhow::Result<Post> {
         let mut data = self.data.lock().await;
         data.counter += 1;
         let ts = chrono::offset::Utc::now();
@@ -87,7 +97,7 @@ impl PostService for InMemoryPostService {
         }
     }
 
-    async fn update_post(&mut self, req: UpdatePostRequest) -> anyhow::Result<Post> {
+    async fn update_post(&self, req: UpdatePostRequest) -> anyhow::Result<Post> {
         let mut data = self.data.lock().await;
         let post = data
             .items
@@ -107,7 +117,7 @@ impl PostService for InMemoryPostService {
         }
     }
 
-    async fn delete_post(&mut self, id: i64) -> anyhow::Result<()> {
+    async fn delete_post(&self, id: i64) -> anyhow::Result<()> {
         let mut data = self.data.lock().await;
         match data.items.remove(&id) {
             None => {
