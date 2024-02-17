@@ -5,9 +5,9 @@ use tokio::sync::Mutex;
 
 #[allow(async_fn_in_trait)]
 pub trait PostService {
-    async fn get_all_posts(&self) -> Vec<Post>;
-    async fn get_post_by_id(&self, id: i64) -> Option<Post>;
-    async fn get_post_by_slug(&self, name: &str) -> Option<Post>;
+    async fn get_all_posts(&self) -> anyhow::Result<Vec<Post>>;
+    async fn get_post_by_id(&self, id: i64) -> anyhow::Result<Post>;
+    async fn get_post_by_slug(&self, name: &str) -> anyhow::Result<Post>;
     async fn create_post(&self, req: CreatePostRequest) -> anyhow::Result<Post>;
     async fn update_post(&self, req: UpdatePostRequest) -> anyhow::Result<Post>;
     async fn delete_post(&self, id: i64) -> anyhow::Result<()>;
@@ -51,25 +51,29 @@ impl Default for InMemoryPostService {
 }
 
 impl PostService for InMemoryPostService {
-    async fn get_all_posts(&self) -> Vec<Post> {
+    async fn get_all_posts(&self) -> anyhow::Result<Vec<Post>> {
         let data = self.data.lock().await;
-        data.items.values().map(|post| (*post).clone()).collect()
+        Ok(data.items.values().map(|post| (*post).clone()).collect())
     }
 
-    async fn get_post_by_id(&self, id: i64) -> Option<Post> {
+    async fn get_post_by_id(&self, id: i64) -> anyhow::Result<Post> {
         let data = self.data.lock().await;
-        data.items.get(&id).map(|post| (*post).clone())
+
+        match data.items.get(&id) {
+            Some(post) => Ok((*post).clone()),
+            None => anyhow::bail!("Post not found: {}", id),
+        }
     }
 
-    async fn get_post_by_slug(&self, slug: &str) -> Option<Post> {
+    async fn get_post_by_slug(&self, slug: &str) -> anyhow::Result<Post> {
         let data = self.data.lock().await;
         for (_id, post) in data.items.iter() {
             if post.slug == slug {
-                return Some(post.clone());
+                return Ok(post.clone());
             }
         }
 
-        None
+        anyhow::bail!("Post not found: {}", slug)
     }
 
     async fn create_post(&self, req: CreatePostRequest) -> anyhow::Result<Post> {

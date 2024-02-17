@@ -23,7 +23,7 @@ pub async fn create(
 pub async fn list(
     State(state): State<Arc<ApplicationState>>,
 ) -> Result<Json<ListPostsResponse>, AppError> {
-    let posts = state.post_service.get_all_posts().await;
+    let posts = state.post_service.get_all_posts().await?;
 
     let response = ListPostsResponse { data: posts };
 
@@ -37,14 +37,11 @@ pub async fn get(
     let post = state.post_service.get_post_by_slug(&slug).await;
 
     match post {
-        Some(post) => {
+        Ok(post) => {
             let response = SinglePostResponse { data: post };
 
             Ok(Json(response))
         }
-        None => Err(AppError::from((
-            StatusCode::NOT_FOUND,
-            anyhow::anyhow!("Post not found: {}", slug),
-        ))),
+        Err(e) => Err(AppError::from((StatusCode::NOT_FOUND, e))),
     }
 }

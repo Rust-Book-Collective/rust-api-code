@@ -5,8 +5,8 @@ use tokio::sync::Mutex;
 
 #[allow(async_fn_in_trait)]
 pub trait UserService {
-    async fn get_user_by_id(&self, id: i64) -> Option<User>;
-    async fn get_user_by_name(&self, name: &str) -> Option<User>;
+    async fn get_user_by_id(&self, id: i64) -> anyhow::Result<User>;
+    async fn get_user_by_name(&self, name: &str) -> anyhow::Result<User>;
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User>;
     async fn update_user(&mut self, req: UpdateUserRequest) -> anyhow::Result<User>;
     async fn delete_user(&mut self, id: i64) -> anyhow::Result<()>;
@@ -46,20 +46,23 @@ impl Default for InMemoryUserService {
 }
 
 impl UserService for InMemoryUserService {
-    async fn get_user_by_id(&self, id: i64) -> Option<User> {
+    async fn get_user_by_id(&self, id: i64) -> anyhow::Result<User> {
         let data = self.data.lock().await;
-        data.items.get(&id).map(|user| (*user).clone())
+        match data.items.get(&id) {
+            Some(user) => Ok((*user).clone()),
+            None => anyhow::bail!("User not found: {}", id),
+        }
     }
 
-    async fn get_user_by_name(&self, name: &str) -> Option<User> {
+    async fn get_user_by_name(&self, name: &str) -> anyhow::Result<User> {
         let data = self.data.lock().await;
         for (_id, user) in data.items.iter() {
             if user.username == name {
-                return Some(user.clone());
+                return Ok(user.clone());
             }
         }
 
-        None
+        anyhow::bail!("User not found: {}", name)
     }
 
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User> {
