@@ -1,8 +1,8 @@
 use crate::api::errors::AppError;
 use crate::api::response::posts::ListPostsResponse;
 use crate::api::response::posts::SinglePostResponse;
-use crate::services::post::CreatePostRequest;
 use crate::services::post::PostService;
+use crate::services::post::{CreatePostRequest, UpdatePostRequest};
 use crate::state::ApplicationState;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -14,6 +14,18 @@ pub async fn create(
     Json(payload): Json<CreatePostRequest>,
 ) -> Result<Json<SinglePostResponse>, AppError> {
     let post = state.post_service.create_post(payload).await?;
+
+    let response = SinglePostResponse { data: post };
+
+    Ok(Json(response))
+}
+
+pub async fn update(
+    State(state): State<Arc<ApplicationState>>,
+    Path(id): Path<i64>,
+    Json(payload): Json<UpdatePostRequest>,
+) -> Result<Json<SinglePostResponse>, AppError> {
+    let post = state.post_service.update_post(id, payload).await?;
 
     let response = SinglePostResponse { data: post };
 
@@ -44,4 +56,13 @@ pub async fn get(
         }
         Err(e) => Err(AppError::from((StatusCode::NOT_FOUND, e))),
     }
+}
+
+pub async fn delete(
+    State(state): State<Arc<ApplicationState>>,
+    Path(id): Path<i64>,
+) -> Result<Json<()>, AppError> {
+    state.post_service.delete_post(id).await?;
+
+    Ok(Json(()))
 }

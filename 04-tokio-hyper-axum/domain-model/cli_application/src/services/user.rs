@@ -8,7 +8,7 @@ pub trait UserService {
     async fn get_user_by_id(&self, id: i64) -> anyhow::Result<User>;
     async fn get_user_by_name(&self, name: &str) -> anyhow::Result<User>;
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User>;
-    async fn update_user(&mut self, req: UpdateUserRequest) -> anyhow::Result<User>;
+    async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User>;
     async fn delete_user(&mut self, id: i64) -> anyhow::Result<()>;
 }
 
@@ -19,7 +19,6 @@ pub struct CreateUserRequest {
 }
 
 pub struct UpdateUserRequest {
-    pub id: i64,
     pub username: String,
     pub password: String,
     pub status: UserStatus,
@@ -89,12 +88,12 @@ impl UserService for InMemoryUserService {
         }
     }
 
-    async fn update_user(&mut self, req: UpdateUserRequest) -> anyhow::Result<User> {
+    async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User> {
         let mut data = self.data.lock().await;
         let user = data
             .items
-            .get_mut(&req.id)
-            .ok_or(anyhow::anyhow!("User not found: {}", req.id))?;
+            .get_mut(&id)
+            .ok_or(anyhow::anyhow!("User not found: {}", id))?;
 
         user.username = req.username;
         user.password = req.password;
@@ -103,7 +102,7 @@ impl UserService for InMemoryUserService {
 
         match data.items.get(&data.counter) {
             None => {
-                anyhow::bail!("User not found: {}", req.id)
+                anyhow::bail!("User not found: {}", id)
             }
             Some(user) => Ok(user.clone()),
         }
