@@ -1,9 +1,9 @@
 use super::handlers;
+use crate::api::middleware::auth::auth;
 use crate::state::ApplicationState;
 use axum::routing::{delete, get, post, put};
 use axum::{middleware, Router};
 use std::sync::Arc;
-use crate::api::middleware::auth::auth;
 
 pub fn configure(state: Arc<ApplicationState>) -> Router {
     Router::new()

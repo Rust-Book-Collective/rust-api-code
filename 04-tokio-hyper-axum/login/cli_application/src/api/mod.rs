@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 pub mod errors;
 mod handlers;
-pub mod response;
-pub mod request;
-mod v1;
 pub mod middleware;
+pub mod request;
+pub mod response;
+mod v1;
 
 pub fn configure(state: Arc<ApplicationState>) -> Router {
     Router::new().nest("/v1", v1::configure(state))

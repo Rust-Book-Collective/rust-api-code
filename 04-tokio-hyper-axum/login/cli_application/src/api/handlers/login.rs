@@ -1,19 +1,23 @@
+use crate::api::errors::AppError;
 use crate::api::request::login::LoginRequest;
 use crate::api::response::login::LoginResponse;
+use crate::api::response::TokenClaims;
 use crate::state::ApplicationState;
 use axum::extract::State;
 use axum::Json;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use std::sync::Arc;
-use crate::api::errors::AppError;
-use crate::api::response::TokenClaims;
 
 pub async fn login(
     State(state): State<Arc<ApplicationState>>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>, AppError> {
-
-    let secret = state.settings.load().token_secret.clone().unwrap_or("secret".to_string());
+    let secret = state
+        .settings
+        .load()
+        .token_secret
+        .clone()
+        .unwrap_or("secret".to_string());
     let timeout = state.settings.load().token_timeout_seconds.unwrap_or(3600);
 
     let now = chrono::Utc::now();
@@ -29,7 +33,8 @@ pub async fn login(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
-    ).unwrap_or("".to_string());
+    )
+    .unwrap_or("".to_string());
 
     let response = LoginResponse {
         status: "success".to_string(),
@@ -38,4 +43,3 @@ pub async fn login(
 
     Ok(Json(response))
 }
-

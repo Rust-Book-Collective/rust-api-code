@@ -1,6 +1,7 @@
 use crate::api::errors::AppError;
 use crate::api::response::posts::ListPostsResponse;
 use crate::api::response::posts::SinglePostResponse;
+use crate::api::response::TokenClaims;
 use crate::services::post::PostService;
 use crate::services::post::{CreatePostRequest, UpdatePostRequest};
 use crate::state::ApplicationState;
@@ -8,7 +9,6 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 use std::sync::Arc;
-use crate::api::response::TokenClaims;
 
 pub async fn create(
     Extension(_claims): Extension<TokenClaims>,

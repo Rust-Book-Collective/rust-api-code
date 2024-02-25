@@ -1,5 +1,5 @@
-pub mod posts;
 pub mod login;
+pub mod posts;
 
 use serde::{Deserialize, Serialize};
 
