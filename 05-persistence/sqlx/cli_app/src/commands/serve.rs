@@ -43,7 +43,14 @@ fn start_tokio(port: u16, settings: &Settings) -> anyhow::Result<()> {
 
             subscriber.init();
 
-            let state = Arc::new(ApplicationState::new(settings)?);
+            let db_url = settings
+                .database
+                .url
+                .clone()
+                .expect("Database URL is not set");
+            let pool = sqlx::MySqlPool::connect(&db_url).await?;
+
+            let state = Arc::new(ApplicationState::new(settings, pool)?);
             let router = crate::api::configure(state).layer(TraceLayer::new_for_http());
 
             let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port);

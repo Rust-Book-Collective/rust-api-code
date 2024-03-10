@@ -1,5 +1,6 @@
 use crate::model::{User, UserStatus};
 use chrono::{DateTime, Utc};
+use sqlx::MySqlPool;
 use std::collections::HashMap;
 use tokio::sync::Mutex;
 
@@ -116,5 +117,79 @@ impl UserService for InMemoryUserService {
             }
             Some(_) => Ok(()),
         }
+    }
+}
+
+pub struct MySQLUserService {
+    pub pool: MySqlPool,
+}
+
+impl MySQLUserService {
+    pub fn new(pool: MySqlPool) -> Self {
+        Self { pool }
+    }
+}
+
+impl UserService for MySQLUserService {
+    async fn get_user_by_id(&self, id: i64) -> anyhow::Result<User> {
+        let res = sqlx::query!(
+            r#"
+            SELECT id, username, password, status, created, updated, last_login
+            FROM users
+            WHERE id = ?
+            "#,
+            id
+        );
+
+        res.fetch_one(&self.pool)
+            .await
+            .map(|row| User {
+                id: row.id as i64,
+                username: row.username,
+                password: row.password,
+                status: UserStatus::from(row.status),
+                created: row.created.unwrap_or_default(),
+                updated: row.updated.unwrap_or_default(),
+                last_login: row.last_login,
+            })
+            .map_err(|e| anyhow::anyhow!(e).context(format!("Failed to get user by id: {}", id)))
+    }
+
+    async fn get_user_by_name(&self, name: &str) -> anyhow::Result<User> {
+        let res = sqlx::query!(
+            r#"
+            SELECT id, username, password, status, created, updated, last_login
+            FROM users
+            WHERE username = ?
+            "#,
+            name
+        );
+
+        res.fetch_one(&self.pool)
+            .await
+            .map(|row| User {
+                id: row.id as i64,
+                username: row.username,
+                password: row.password,
+                status: UserStatus::from(row.status),
+                created: row.created.unwrap_or_default(),
+                updated: row.updated.unwrap_or_default(),
+                last_login: row.last_login,
+            })
+            .map_err(|e| {
+                anyhow::anyhow!(e).context(format!("Failed to get user by name: {}", name))
+            })
+    }
+
+    async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User> {
+        todo!()
+    }
+
+    async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User> {
+        todo!()
+    }
+
+    async fn delete_user(&mut self, id: i64) -> anyhow::Result<()> {
+        todo!()
     }
 }
