@@ -187,13 +187,16 @@ impl UserService for MySQLUserService {
                 INSERT INTO users ( username, password, status, created, updated, last_login )
                 VALUES ( ?, ?, ?, NOW(), NOW(), NULL )
             "#,
-             req.username, req.password, i32::from(req.status));
+            req.username,
+            req.password,
+            i32::from(req.status)
+        );
 
-        let res = query.execute(&self.pool)
-            .await?
-            .last_insert_id();
+        let res = query.execute(&self.pool).await?.last_insert_id();
 
-        let id: i64 = res.try_into().or_else(|_| anyhow::bail!("Failed to convert user id"))?;
+        let id: i64 = res
+            .try_into()
+            .or_else(|_| anyhow::bail!("Failed to convert user id"))?;
 
         let user = self.get_user_by_id(id).await?;
 
@@ -207,8 +210,12 @@ impl UserService for MySQLUserService {
                 SET username = ?, password = ?, status = ?, updated = NOW(), last_login = ?
                 WHERE id = ?
             "#,
-            req.username, req.password, i32::from(req.status), req.last_login, id);
-
+            req.username,
+            req.password,
+            i32::from(req.status),
+            req.last_login,
+            id
+        );
 
         query.execute(&self.pool).await?;
 
@@ -223,7 +230,8 @@ impl UserService for MySQLUserService {
                 DELETE FROM users
                 WHERE id = ?
             "#,
-            id);
+            id
+        );
 
         query.execute(&self.pool).await?;
 
