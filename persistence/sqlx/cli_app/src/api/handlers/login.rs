@@ -14,9 +14,9 @@ pub async fn login(
     State(state): State<Arc<ApplicationState>>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>, AppError> {
-    let user = match state.user_service.get_user_by_name(&payload.username).await {
+    let _user = match state.user_service.get_user_by_name(&payload.username).await {
         Ok(user) => user,
-        Err(e) => {
+        Err(_) => {
             return Err(AppError::from((
                 StatusCode::UNAUTHORIZED,
                 anyhow::anyhow!("Invalid username or password"),

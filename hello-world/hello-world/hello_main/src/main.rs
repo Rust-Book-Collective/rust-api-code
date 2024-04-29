@@ -16,6 +16,7 @@ async fn hello_json() -> (StatusCode, Json<Response>) {
     (StatusCode::OK, Json(response))
 }
 
+#[allow(dead_code)]
 async fn hello() -> &'static str {
     "Hello, world!"
 }

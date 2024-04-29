@@ -17,6 +17,15 @@ impl From<i32> for UserStatus {
     }
 }
 
+impl From<UserStatus> for i32 {
+    fn from(value: UserStatus) -> Self {
+        match value {
+            UserStatus::Active => 1,
+            UserStatus::Blocked => 2,
+        }
+    }
+}
+
 #[derive(Clone, Serialize)]
 pub struct User {
     pub id: i64,

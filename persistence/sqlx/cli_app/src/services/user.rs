@@ -182,14 +182,51 @@ impl UserService for MySQLUserService {
     }
 
     async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User> {
-        todo!()
+        let query = sqlx::query!(
+            r#"
+                INSERT INTO users ( username, password, status, created, updated, last_login )
+                VALUES ( ?, ?, ?, NOW(), NOW(), NULL )
+            "#,
+             req.username, req.password, i32::from(req.status));
+
+        let res = query.execute(&self.pool)
+            .await?
+            .last_insert_id();
+
+        let id: i64 = res.try_into().or_else(|_| anyhow::bail!("Failed to convert user id"))?;
+
+        let user = self.get_user_by_id(id).await?;
+
+        Ok(user)
     }
 
     async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User> {
-        todo!()
+        let query = sqlx::query!(
+            r#"
+                UPDATE users
+                SET username = ?, password = ?, status = ?, updated = NOW(), last_login = ?
+                WHERE id = ?
+            "#,
+            req.username, req.password, i32::from(req.status), req.last_login, id);
+
+
+        query.execute(&self.pool).await?;
+
+        let user = self.get_user_by_id(id).await?;
+
+        Ok(user)
     }
 
     async fn delete_user(&mut self, id: i64) -> anyhow::Result<()> {
-        todo!()
+        let query = sqlx::query!(
+            r#"
+                DELETE FROM users
+                WHERE id = ?
+            "#,
+            id);
+
+        query.execute(&self.pool).await?;
+
+        Ok(())
     }
 }
