@@ -53,6 +53,15 @@ impl From<i32> for PostStatus {
     }
 }
 
+impl From<PostStatus> for i32 {
+    fn from(value: PostStatus) -> Self {
+        match value {
+            PostStatus::Draft => 1,
+            PostStatus::Published => 2,
+        }
+    }
+}
+
 #[derive(Clone, Serialize)]
 pub struct Post {
     pub id: i64,
