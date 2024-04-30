@@ -1,5 +1,5 @@
 use clap::Command;
-use cli_application::commands;
+use cli_app::commands;
 
 fn main() -> anyhow::Result<()> {
     let mut command = Command::new("Sample CLI application");
