@@ -2,6 +2,7 @@ use crate::api::errors::AppError;
 use crate::api::request::login::LoginRequest;
 use crate::api::response::login::LoginResponse;
 use crate::api::response::TokenClaims;
+use crate::model::validate_password;
 use crate::services::user::UserService;
 use crate::state::ApplicationState;
 use axum::extract::State;
@@ -14,7 +15,7 @@ pub async fn login(
     State(state): State<Arc<ApplicationState>>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>, AppError> {
-    let _user = match state.user_service.get_user_by_name(&payload.username).await {
+    let user = match state.user_service.get_user_by_name(&payload.username).await {
         Ok(user) => user,
         Err(_) => {
             return Err(AppError::from((
@@ -23,6 +24,13 @@ pub async fn login(
             )))
         }
     };
+
+    if validate_password(&payload.password, &user.password).is_err() {
+        return Err(AppError::from((
+            StatusCode::UNAUTHORIZED,
+            anyhow::anyhow!("Invalid username or password"),
+        )));
+    }
 
     let secret = state
         .settings
