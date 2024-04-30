@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
-use axum::{Json, Router};
 use axum::routing::get;
+use axum::{Json, Router};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -23,8 +23,7 @@ async fn hello() -> &'static str {
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new()
-        .route("/", get(hello_json));
+    let app = Router::new().route("/", get(hello_json));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

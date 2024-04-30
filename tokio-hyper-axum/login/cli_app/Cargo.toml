@@ -11,15 +11,15 @@ anyhow = "1"
 config = "0.14"
 dotenv = "0.15"
 serde = { version = "1", features = ["derive"] }
-axum = "0.7.4"
-tokio = { version = "1.35.1", features = ["full"] }
-arc-swap = "1.6"
+axum = "0.7"
+tokio = { version = "1.37", features = ["full"] }
+arc-swap = "1.7"
 tracing = { version = "0.1", features = ["log"] }
 tracing-log = { version = "0.2" }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
-tower-http = { version = "0.5.1", features = ["trace"] }
-chrono = {  version = "0.4.34", features = ["serde"] }
+tower-http = { version = "0.5", features = ["trace"] }
+chrono = {  version = "0.4", features = ["serde"] }
 axum-macros = "0.4.1"
-jsonwebtoken = "8.3.0"
+jsonwebtoken = "9.3"
 argon2 = "0.5"
 password-hash = { version = "0.5", features = ["getrandom"] }
