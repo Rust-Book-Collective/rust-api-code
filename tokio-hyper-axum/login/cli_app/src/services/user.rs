@@ -7,9 +7,9 @@ use tokio::sync::Mutex;
 pub trait UserService {
     async fn get_user_by_id(&self, id: i64) -> anyhow::Result<User>;
     async fn get_user_by_name(&self, name: &str) -> anyhow::Result<User>;
-    async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User>;
-    async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User>;
-    async fn delete_user(&mut self, id: i64) -> anyhow::Result<()>;
+    async fn create_user(&self, req: CreateUserRequest) -> anyhow::Result<User>;
+    async fn update_user(&self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User>;
+    async fn delete_user(&self, id: i64) -> anyhow::Result<()>;
 }
 
 pub struct CreateUserRequest {
@@ -64,7 +64,7 @@ impl UserService for InMemoryUserService {
         anyhow::bail!("User not found: {}", name)
     }
 
-    async fn create_user(&mut self, req: CreateUserRequest) -> anyhow::Result<User> {
+    async fn create_user(&self, req: CreateUserRequest) -> anyhow::Result<User> {
         let mut data = self.data.lock().await;
         data.counter += 1;
         let ts = chrono::offset::Utc::now();
@@ -88,7 +88,7 @@ impl UserService for InMemoryUserService {
         }
     }
 
-    async fn update_user(&mut self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User> {
+    async fn update_user(&self, id: i64, req: UpdateUserRequest) -> anyhow::Result<User> {
         let mut data = self.data.lock().await;
         let user = data
             .items
@@ -108,7 +108,7 @@ impl UserService for InMemoryUserService {
         }
     }
 
-    async fn delete_user(&mut self, id: i64) -> anyhow::Result<()> {
+    async fn delete_user(&self, id: i64) -> anyhow::Result<()> {
         let mut data = self.data.lock().await;
         match data.items.remove(&id) {
             None => {

@@ -1,3 +1,5 @@
+use crate::model::{encrypt_password, UserStatus};
+use crate::services::user::{CreateUserRequest, UserService};
 use crate::settings::Settings;
 use crate::state::ApplicationState;
 use clap::{value_parser, Arg, ArgMatches, Command};
@@ -44,6 +46,19 @@ fn start_tokio(port: u16, settings: &Settings) -> anyhow::Result<()> {
             subscriber.init();
 
             let state = Arc::new(ApplicationState::new(settings)?);
+
+            // create an admin user for testing
+
+            state
+                .clone()
+                .user_service
+                .create_user(CreateUserRequest {
+                    username: "admin".to_string(),
+                    password: encrypt_password("admin")?,
+                    status: UserStatus::Active,
+                })
+                .await?;
+
             let router = crate::api::configure(state).layer(TraceLayer::new_for_http());
 
             let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), port);

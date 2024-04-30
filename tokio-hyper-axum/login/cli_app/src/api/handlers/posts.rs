@@ -23,6 +23,7 @@ pub async fn create(
 }
 
 pub async fn update(
+    Extension(_claims): Extension<TokenClaims>,
     State(state): State<Arc<ApplicationState>>,
     Path(id): Path<i64>,
     Json(payload): Json<UpdatePostRequest>,
@@ -61,6 +62,7 @@ pub async fn get(
 }
 
 pub async fn delete(
+    Extension(_claims): Extension<TokenClaims>,
     State(state): State<Arc<ApplicationState>>,
     Path(id): Path<i64>,
 ) -> Result<Json<()>, AppError> {
