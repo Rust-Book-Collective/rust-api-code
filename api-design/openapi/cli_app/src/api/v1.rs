@@ -22,7 +22,7 @@ pub fn configure(state: Arc<ApplicationState>) -> Router {
             get(handlers::posts::list).with_state(state.clone()),
         )
         .route(
-            "/posts/:slug",
+            "/posts/:id",
             get(handlers::posts::get).with_state(state.clone()),
         )
         .route(
